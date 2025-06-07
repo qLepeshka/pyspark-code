@@ -1,0 +1,45 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class Category
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class ProductCategory
+{
+    public int ProductId { get; set; }
+    public int CategoryId { get; set; }
+}
+
+public static class ProductCategoryService
+{
+    public static List<Tuple<string, string>> GetProductCategoryPairs(
+        List<Product> products,
+        List<Category> categories,
+        List<ProductCategory> relations)
+    {
+        var productCategories = (
+            from r in relations
+            join p in products on r.ProductId equals p.Id
+            join c in categories on r.CategoryId equals c.Id
+            select Tuple.Create(p.Name, c.Name)
+        ).ToList();
+
+        var productsWithoutCategories = (
+            from p in products
+            where !relations.Any(r => r.ProductId == p.Id)
+            select Tuple.Create(p.Name, (string)null)
+        ).ToList();
+
+        return productCategories.Concat(productsWithoutCategories).ToList();
+    }
+}
